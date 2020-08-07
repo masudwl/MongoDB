@@ -19,7 +19,7 @@ app.get('/products', (req, res)=>{
     client.connect(err => {
         const collection = client.db("onlineStore").collection("products");
         // collection.find().toArray((err, documents)=>{
-        collection.find({name:'mobile'}).limit(10).toArray((err, documents)=>{
+        collection.find().toArray((err, documents)=>{
             if(err){
                 console.log(err);
                 res.status(500).send({massage:err});
@@ -29,14 +29,28 @@ app.get('/products', (req, res)=>{
         })
         client.close();
       });
-
 }); 
-app.get('/user/:id', (req, res)=>{
-    const id = req.params.id; 
-    const names = user[id]; 
-    // res.send (names); 
-    res.send ({names, id});  
+app.post('/getProductsByKey/:key', (req, res)=>{
+    const key = req.params.key; 
+    const productKeys = req.body;
+    console.log(productKeys);
+    
+    client = new MongoClient(uri, { useNewUrlParser: true });
+    client.connect(err => {
+        const collection = client.db("onlineStore").collection("products");
+        // collection.find().toArray((err, documents)=>{
+        collection.find({key}).toArray((err, documents)=>{
+            if(err){
+                console.log(err);
+                res.status(500).send({massage:err});
+            }else{
+            res.send(documents[0]);
+            }
+        })
+        client.close();
+      });  
 })
+
 
 //post 
 app.post('/addProduct', (req, res)=>{
@@ -44,7 +58,7 @@ app.post('/addProduct', (req, res)=>{
     const product = req.body;
     client.connect(err => {
         const collection = client.db("onlineStore").collection("products");
-        collection.insertOne(product, (err, result)=>{
+        collection.insert(product, (err, result)=>{
             if(err){
                 console.log(err);
                 res.status(500).send({massage:err});
@@ -56,5 +70,5 @@ app.post('/addProduct', (req, res)=>{
       });
 })
 
-app.listen(3000, ()=> console.log('Listening to port 3000'))
+app.listen(4000, ()=> console.log('Listening to port 4000'))
 
