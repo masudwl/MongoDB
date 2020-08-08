@@ -14,6 +14,7 @@ let client = new MongoClient(uri, { useNewUrlParser: true });
 
 const user = ['Masud', 'Shohag', 'Rubel', 'Jahim']; 
 
+// product add to database
 app.get('/products', (req, res)=>{
     client = new MongoClient(uri, { useNewUrlParser: true });
     client.connect(err => {
@@ -25,16 +26,16 @@ app.get('/products', (req, res)=>{
                 res.status(500).send({massage:err});
             }else{
             res.send(documents);
+            client.close();
             }
         })
-        client.close();
+        
       });
 }); 
-app.post('/getProductsByKey/:key', (req, res)=>{
+// Single Product details api
+app.get('/products/:key', (req, res)=>{
     const key = req.params.key; 
     const productKeys = req.body;
-    console.log(productKeys);
-    
     client = new MongoClient(uri, { useNewUrlParser: true });
     client.connect(err => {
         const collection = client.db("onlineStore").collection("products");
@@ -45,12 +46,33 @@ app.post('/getProductsByKey/:key', (req, res)=>{
                 res.status(500).send({massage:err});
             }else{
             res.send(documents[0]);
+            client.close();
+            }
+        })
+         
+      });  
+})
+
+// review prducts 
+app.post('/getsProductByKey', (req, res)=>{
+    const key = req.params.key; 
+    const productKeys = req.body;
+    console.log(productKeys);
+    client = new MongoClient(uri, { useNewUrlParser: true });
+    client.connect(err => {
+        const collection = client.db("onlineStore").collection("products");
+        // collection.find().toArray((err, documents)=>{
+        collection.find({key: {$in: productKeys}}).toArray((err, documents)=>{
+            if(err){
+                console.log(err);
+                res.status(500).send({massage:err});
+            }else{
+            res.send(documents);
             }
         })
         client.close();
       });  
 })
-
 
 //post 
 app.post('/addProduct', (req, res)=>{
@@ -64,9 +86,30 @@ app.post('/addProduct', (req, res)=>{
                 res.status(500).send({massage:err});
             }else{
             res.send(result.ops[0]);
+            client.close();
             }
         })
-        client.close();
+        
+      });
+})
+
+//place order
+app.post('/placeOrder', (req, res)=>{
+    const orderDetails = req.body;
+    orderDetails.orderTime = new Date(); 
+    client = new MongoClient(uri, { useNewUrlParser: true });
+    client.connect(err => {
+        const collection = client.db("onlineStore").collection("orders");
+        collection.insertOne(orderDetails, (err, result)=>{
+            if(err){
+                console.log(err);
+                res.status(500).send({massage:err});
+            }else{
+            res.send(result.ops[0]);
+            client.close();
+            }
+        })
+        
       });
 })
 
